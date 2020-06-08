@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using NUnit.Framework;
 
@@ -40,7 +41,7 @@ namespace XeppIT.AspNetCore.Identity.MongoDb.UnitTests
 
         protected RoleManager<ApplicationRole> GetRoleManager()
             => ServiceProvider.GetService<RoleManager<ApplicationRole>>();
-
+        
         protected IServiceProvider CreateServiceProvider<TUser, TRole>(Action<IdentityOptions> optionsProvider = null)
             where TUser : ApplicationUser
             where TRole : ApplicationRole

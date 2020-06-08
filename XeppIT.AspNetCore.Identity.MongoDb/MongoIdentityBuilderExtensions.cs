@@ -1,14 +1,13 @@
 ﻿using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 
 namespace XeppIT.AspNetCore.Identity.MongoDb
 {
     public static class MongoIdentityBuilderExtensions
     {
-        public static IdentityBuilder RegisterMongoStores<TUser, TRole>(
-            this IServiceCollection services,
-            string connectionString)
+        public static IdentityBuilder RegisterMongoStores<TUser, TRole>(this IServiceCollection services, string connectionString)
             where TUser : class
             where TRole : class
         {
@@ -24,8 +23,16 @@ namespace XeppIT.AspNetCore.Identity.MongoDb
                 })
                 .AddDefaultTokenProviders();
 
-            services.AddTransient(provider => new ApplicationUserRepository(connectionString));
-            services.AddTransient(provider => new ApplicationRoleRepository(connectionString));
+
+            var client = new MongoClient(connectionString);
+
+            var database = client.GetDatabase("Identity");
+
+            var applicationUserCollection = database.GetCollection<ApplicationUser>("ApplicationUser");
+            var applicationRoleCollection = database.GetCollection<ApplicationRole>("ApplicationRole");
+
+            services.AddSingleton(provider => applicationUserCollection);
+            services.AddSingleton(provider => applicationRoleCollection);
 
             services.AddTransient<IUserStore<ApplicationUser>, CustomUserStore>();
             services.AddTransient<IRoleStore<ApplicationRole>, CustomRoleStore>();

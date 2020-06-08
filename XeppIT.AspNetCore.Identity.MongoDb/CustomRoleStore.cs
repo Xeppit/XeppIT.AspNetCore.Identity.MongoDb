@@ -1,63 +1,69 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using MongoDB.Driver;
 
 namespace XeppIT.AspNetCore.Identity.MongoDb
 {
-    class CustomRoleStore : IRoleStore<ApplicationRole>
+    public class CustomRoleStore : IRoleStore<ApplicationRole>
     {
-        public Task<IdentityResult> CreateAsync(ApplicationRole role, CancellationToken cancellationToken)
+        private readonly IMongoCollection<ApplicationRole> _applicationUserCollection;
+
+        public CustomRoleStore(IMongoCollection<ApplicationRole> applicationUserCollection)
         {
-            throw new NotImplementedException();
+            _applicationUserCollection = applicationUserCollection;
         }
 
-        public Task<IdentityResult> DeleteAsync(ApplicationRole role, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task<IdentityResult> CreateAsync(ApplicationRole role, CancellationToken token)
+		{
+			await _applicationUserCollection.InsertOneAsync(role, cancellationToken: token);
+			return IdentityResult.Success;
+		}
 
-        public Task<ApplicationRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task<IdentityResult> UpdateAsync(ApplicationRole role, CancellationToken token)
+		{
+			var result = await _applicationUserCollection.ReplaceOneAsync(r => r.Id == role.Id, role, cancellationToken: token);
+			// todo low priority result based on replace result
+			return IdentityResult.Success;
+		}
 
-        public Task<ApplicationRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task<IdentityResult> DeleteAsync(ApplicationRole role, CancellationToken token)
+		{
+			var result = await _applicationUserCollection.DeleteOneAsync(r => r.Id == role.Id, token);
+			// todo low priority result based on delete result
+			return IdentityResult.Success;
+		}
 
-        public Task<string> GetNormalizedRoleNameAsync(ApplicationRole role, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task<string> GetRoleIdAsync(ApplicationRole role, CancellationToken cancellationToken)
+			=> role.Id;
 
-        public Task<string> GetRoleIdAsync(ApplicationRole role, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task<string> GetRoleNameAsync(ApplicationRole role, CancellationToken cancellationToken)
+			=> role.Name;
 
-        public Task<string> GetRoleNameAsync(ApplicationRole role, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task SetRoleNameAsync(ApplicationRole role, string roleName, CancellationToken cancellationToken)
+			=> role.Name = roleName;
 
-        public Task SetNormalizedRoleNameAsync(ApplicationRole role, string normalizedName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		// note: can't test as of yet through integration testing because the Identity framework doesn't use this method internally anywhere
+		public virtual async Task<string> GetNormalizedRoleNameAsync(ApplicationRole role, CancellationToken cancellationToken)
+			=> role.NormalizedName;
 
-        public Task SetRoleNameAsync(ApplicationRole role, string roleName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual async Task SetNormalizedRoleNameAsync(ApplicationRole role, string normalizedName, CancellationToken cancellationToken)
+			=> role.NormalizedName = normalizedName;
 
-        public Task<IdentityResult> UpdateAsync(ApplicationRole role, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+		public virtual Task<ApplicationRole> FindByIdAsync(string roleId, CancellationToken token)
+			=> _applicationUserCollection.Find(r => r.Id == roleId)
+				.FirstOrDefaultAsync(token);
 
-        public void Dispose()
+		public virtual Task<ApplicationRole> FindByNameAsync(string normalizedName, CancellationToken token)
+			=> _applicationUserCollection.Find(r => r.NormalizedName == normalizedName)
+				.FirstOrDefaultAsync(token);
+
+		public virtual IQueryable<ApplicationRole> Roles
+			=> _applicationUserCollection.AsQueryable();
+
+		public void Dispose()
         {
         }
     }
