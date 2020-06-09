@@ -28,8 +28,8 @@ namespace XeppIT.AspNetCore.Identity.MongoDb
 
             var database = client.GetDatabase("Identity");
 
-            var applicationUserCollection = database.GetCollection<ApplicationUser>("ApplicationUser");
-            var applicationRoleCollection = database.GetCollection<ApplicationRole>("ApplicationRole");
+            var applicationUserCollection = database.GetCollection<ApplicationUser>("ApplicationUsers");
+            var applicationRoleCollection = database.GetCollection<ApplicationRole>("ApplicationRoles");
 
             services.AddSingleton(provider => applicationUserCollection);
             services.AddSingleton(provider => applicationRoleCollection);
