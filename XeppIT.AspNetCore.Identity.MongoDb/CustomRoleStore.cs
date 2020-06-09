@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS1998
+
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,29 +11,29 @@ namespace XeppIT.AspNetCore.Identity.MongoDb
 {
     public class CustomRoleStore : IRoleStore<ApplicationRole>
     {
-        private readonly IMongoCollection<ApplicationRole> _applicationUserCollection;
+        private readonly IMongoCollection<ApplicationRole> _applicationRoleCollection;
 
-        public CustomRoleStore(IMongoCollection<ApplicationRole> applicationUserCollection)
+        public CustomRoleStore(IMongoCollection<ApplicationRole> applicationRoleCollection)
         {
-            _applicationUserCollection = applicationUserCollection;
+            _applicationRoleCollection = applicationRoleCollection;
         }
 
 		public virtual async Task<IdentityResult> CreateAsync(ApplicationRole role, CancellationToken token)
 		{
-			await _applicationUserCollection.InsertOneAsync(role, cancellationToken: token);
+			await _applicationRoleCollection.InsertOneAsync(role, cancellationToken: token);
 			return IdentityResult.Success;
 		}
 
 		public virtual async Task<IdentityResult> UpdateAsync(ApplicationRole role, CancellationToken token)
 		{
-			var result = await _applicationUserCollection.ReplaceOneAsync(r => r.Id == role.Id, role, cancellationToken: token);
+			var result = await _applicationRoleCollection.ReplaceOneAsync(r => r.Id == role.Id, role, cancellationToken: token);
 			// todo low priority result based on replace result
 			return IdentityResult.Success;
 		}
 
 		public virtual async Task<IdentityResult> DeleteAsync(ApplicationRole role, CancellationToken token)
 		{
-			var result = await _applicationUserCollection.DeleteOneAsync(r => r.Id == role.Id, token);
+			var result = await _applicationRoleCollection.DeleteOneAsync(r => r.Id == role.Id, token);
 			// todo low priority result based on delete result
 			return IdentityResult.Success;
 		}
@@ -53,15 +55,15 @@ namespace XeppIT.AspNetCore.Identity.MongoDb
 			=> role.NormalizedName = normalizedName;
 
 		public virtual Task<ApplicationRole> FindByIdAsync(string roleId, CancellationToken token)
-			=> _applicationUserCollection.Find(r => r.Id == roleId)
+			=> _applicationRoleCollection.Find(r => r.Id == roleId)
 				.FirstOrDefaultAsync(token);
 
 		public virtual Task<ApplicationRole> FindByNameAsync(string normalizedName, CancellationToken token)
-			=> _applicationUserCollection.Find(r => r.NormalizedName == normalizedName)
+			=> _applicationRoleCollection.Find(r => r.NormalizedName == normalizedName)
 				.FirstOrDefaultAsync(token);
 
 		public virtual IQueryable<ApplicationRole> Roles
-			=> _applicationUserCollection.AsQueryable();
+			=> _applicationRoleCollection.AsQueryable();
 
 		public void Dispose()
         {

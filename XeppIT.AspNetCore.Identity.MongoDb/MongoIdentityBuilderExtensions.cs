@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace XeppIT.AspNetCore.Identity.MongoDb
@@ -11,19 +13,6 @@ namespace XeppIT.AspNetCore.Identity.MongoDb
             where TUser : class
             where TRole : class
         {
-            // Add identity types
-            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-                {
-                    options.Password.RequireDigit = false;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequireUppercase = false;
-                    options.Password.RequiredLength = 3;
-                    options.Password.RequiredUniqueChars = 0;
-                })
-                .AddDefaultTokenProviders();
-
-
             var client = new MongoClient(connectionString);
 
             var database = client.GetDatabase("Identity");

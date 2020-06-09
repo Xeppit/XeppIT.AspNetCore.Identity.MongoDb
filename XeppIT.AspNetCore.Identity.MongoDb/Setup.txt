@@ -1,0 +1,33 @@
+﻿            
+            
+            // Add identity Should Go In Startup.ConfigureServices
+            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+                {
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequiredLength = 3;
+                    options.Password.RequiredUniqueChars = 0;
+                })
+                .AddDefaultTokenProviders();
+
+            services.RegisterMongoStores<ApplicationUser, ApplicationRole>("mongodb://root:admin@192.168.0.13:27017");
+
+            // Seed User Should Go in on Startup.Configure & add "IMongoCollection<ApplicationUser>" to method constructor
+            if (applicationUserCollection.Find(x => x.Roles.Contains("ADMIN")).CountDocuments() == 0)
+            {
+                var newAdminUser = new ApplicationUser()
+                {
+                    Id = ObjectId.GenerateNewId().ToString(),
+                    UserName = "Admin",
+                    NormalizedUserName = "ADMIN",
+                    SecurityStamp = "YCDZQMSKD5ZASWP5AHS6ETP4DS67FF5H",
+                    PasswordHash = "AQAAAAEAACcQAAAAEIUon2QbmSRbTUhr8fIu1F7xeavSvsb42H6sp+utamh4gCOL1cmOzw6DGEN0/HDHtw==",
+                    Roles = new List<string>() { "ADMIN" },
+                    LockoutEnabled = false,
+                    EmailConfirmed = true
+                };
+
+                applicationUserCollection.InsertOne(newAdminUser);
+            }
